@@ -1,0 +1,50 @@
+const express = require('express');
+const { registerUser, authUser, getUserProfile } = require('../controllers/authController');
+const { protect } = require('../middlewares/authMiddleware');
+const router = express.Router();
+
+router.post('/register', registerUser);
+router.post('/login', authUser);
+router.get('/profile', protect, getUserProfile);
+
+module.exports = router;
+
+
+const express = require('express');
+const {
+    getProducts,
+    getProductById,
+    createProduct,
+    updateProduct,
+    deleteProduct
+} = require('../controllers/productController');
+const router = express.Router();
+
+router.route('/')
+    .get(getProducts)
+    .post(createProduct);
+
+router.route('/:id')
+    .get(getProductById)
+    .put(updateProduct)
+    .delete(deleteProduct);
+
+module.exports = router;
+
+
+
+const express = require('express');
+const { addItemToCart, getCartItems, removeItemFromCart } = require('../controllers/cartController');
+const { protect } = require('../middlewares/authMiddleware');
+const router = express.Router();
+
+router.route('/')
+    .post(protect, addItemToCart)
+    .get(protect, getCartItems);
+
+router.route('/:productId')
+    .delete(protect, removeItemFromCart);
+
+module.exports = router;
+
+
