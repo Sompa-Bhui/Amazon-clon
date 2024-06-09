@@ -75,3 +75,190 @@ module.exports = {
     authUser,
     getUserProfile
 };
+
+
+
+const Product = require('../models/Product');
+
+// Get all products
+const getProducts = async (req, res) => {
+    try {
+        const products = await Product.find({});
+        res.json(products);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// Get single product by ID
+const getProductById = async (req, res) => {
+    try {
+        const product = await Product.findById(req.params.id);
+        if (product) {
+            res.json(product);
+        } else {
+            res.status(404).json({ message: 'Product not found' });
+        }
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// Create new product
+const createProduct = async (req, res) => {
+    const { name, image, description, brand, category, price, countInStock } = req.body;
+
+    const product = new Product({
+        name,
+        image,
+        description,
+        brand,
+        category,
+        price,
+        countInStock
+    });
+
+    try {
+        const createdProduct = await product.save();
+        res.status(201).json(createdProduct);
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+};
+
+// Update product
+const updateProduct = async (req, res) => {
+    const { name, image, description, brand, category, price, countInStock } = req.body;
+
+    try {
+        const product = await Product.findById(req.params.id);
+
+        if (product) {
+            product.name = name || product.name;
+            product.image = image || product.image;
+            product.description = description || product.description;
+            product.brand = brand || product.brand;
+            product.category = category || product.category;
+            product.price = price || product.price;
+            product.countInStock = countInStock || product.countInStock;
+
+            const updatedProduct = await product.save();
+            res.json(updatedProduct);
+        } else {
+            res.status(404).json({ message: 'Product not found' });
+        }
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+};
+
+// Delete product
+const deleteProduct = async (req, res) => {
+    try {
+        const product = await Product.findById(req.params.id);
+
+        if (product) {
+            await product.remove();
+            res.json({ message: 'Product removed' });
+        } else {
+            res.status(404).json({ message: 'Product not found' });
+        }
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+module.exports = {
+    getProducts,
+    getProductById,
+    createProduct,
+    updateProduct,
+    deleteProduct
+};
+
+
+const Cart = require('../models/Cart');
+const Product = require('../models/Product');
+
+// Add item to cart
+const addItemToCart = async (req, res) => {
+    const { productId, quantity } = req.body;
+    const user = req.user._id;
+
+    try {
+        const product = await Product.findById(productId);
+        if (!product) {
+            return res.status(404).json({ message: 'Product not found' });
+        }
+
+        let cart = await Cart.findOne({ user });
+
+        if (!cart) {
+            cart = new Cart({ user, cartItems: [] });
+        }
+
+        const itemIndex = cart.cartItems.findIndex(item => item.product == productId);
+
+        if (itemIndex > -1) {
+            cart.cartItems[itemIndex].quantity += quantity;
+        } else {
+            cart.cartItems.push({
+                product: productId,
+                name: product.name,
+                quantity,
+                price: product.price
+            });
+        }
+
+        await cart.save();
+        res.status(201).json(cart);
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+};
+
+// Get cart items
+const getCartItems = async (req, res) => {
+    try {
+        const cart = await Cart.findOne({ user: req.user._id }).populate('cartItems.product');
+        if (cart) {
+            res.json(cart.cartItems);
+        } else {
+            res.status(404).json({ message: 'Cart not found' });
+        }
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// Remove item from cart
+const removeItemFromCart = async (req, res) => {
+    const { productId } = req.params;
+    const user = req.user._id;
+
+    try {
+        const cart = await Cart.findOne({ user });
+
+        if (cart) {
+            const itemIndex = cart.cartItems.findIndex(item => item.product == productId);
+            if (itemIndex > -1) {
+                cart.cartItems.splice(itemIndex, 1);
+                await cart.save();
+                res.json(cart);
+            } else {
+                res.status(404).json({ message: 'Item not found in cart' });
+            }
+        } else {
+            res.status(404).json({ message: 'Cart not found' });
+        }
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+module.exports = {
+    addItemToCart,
+    getCartItems,
+    removeItemFromCart
+};
+
