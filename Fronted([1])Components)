@@ -1,0 +1,209 @@
+import React from 'react';
+import { Link } from 'react-router-dom';
+
+const Navbar = () => {
+    return (
+        <nav>
+            <div className="nav-wrapper">
+                <Link to="/" className="brand-logo">Amazon Clone</Link>
+                <ul id="nav-mobile" className="right hide-on-med-and-down">
+                    <li><Link to="/cart">Cart</Link></li>
+                    <li><Link to="/login">Login</Link></li>
+                    <li><Link to="/register">Register</Link></li>
+                </ul>
+            </div>
+        </nav>
+    );
+};
+
+export default Navbar;
+
+
+
+
+import React from 'react';
+
+const Product = ({ product, addToCart }) => {
+    return (
+        <div className="product-card">
+            <img src={product.image} alt={product.name} />
+            <h5>{product.name}</h5>
+            <p>{product.description}</p>
+            <h6>${product.price}</h6>
+            <button onClick={() => addToCart(product._id)}>Add to Cart</button>
+        </div>
+    );
+};
+
+export default Product;
+
+
+
+
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import Product from './Product';
+
+const ProductList = () => {
+    const [products, setProducts] = useState([]);
+
+    useEffect(() => {
+        const fetchProducts = async () => {
+            const res = await axios.get('/api/products');
+            setProducts(res.data);
+        };
+        fetchProducts();
+    }, []);
+
+    const addToCart = async (productId) => {
+        await axios.post('/api/cart', { productId, quantity: 1 }, {
+            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+    };
+
+    return (
+        <div className="product-list">
+            {products.map(product => (
+                <Product key={product._id} product={product} addToCart={addToCart} />
+            ))}
+        </div>
+    );
+};
+
+export default ProductList;
+
+
+
+
+
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+
+const Cart = () => {
+    const [cartItems, setCartItems] = useState([]);
+
+    useEffect(() => {
+        const fetchCartItems = async () => {
+            const res = await axios.get('/api/cart', {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+            });
+            setCartItems(res.data);
+        };
+        fetchCartItems();
+    }, []);
+
+    const removeFromCart = async (productId) => {
+        await axios.delete(`/api/cart/${productId}`, {
+            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+        setCartItems(cartItems.filter(item => item.product._id !== productId));
+    };
+
+    return (
+        <div className="cart">
+            <h2>Cart</h2>
+            {cartItems.map(item => (
+                <div key={item.product._id} className="cart-item">
+                    <h5>{item.name}</h5>
+                    <p>Quantity: {item.quantity}</p>
+                    <p>Price: ${item.price}</p>
+                    <button onClick={() => removeFromCart(item.product._id)}>Remove</button>
+                </div>
+            ))}
+        </div>
+    );
+};
+
+export default Cart;
+
+
+
+
+
+import React, { useState } from 'react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+
+const Login = () => {
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const navigate = useNavigate();
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            const res = await axios.post('/api/auth/login', { email, password });
+            localStorage.setItem('token', res.data.token);
+            navigate('/');
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    return (
+        <div className="login">
+            <h2>Login</h2>
+            <form onSubmit={handleSubmit}>
+                <div className="form-group">
+                    <label>Email</label>
+                    <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                </div>
+                <div className="form-group">
+                    <label>Password</label>
+                    <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+                </div>
+                <button type="submit">Login</button>
+            </form>
+        </div>
+    );
+};
+
+export default Login;
+
+
+
+
+import React, { useState } from 'react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+
+const Register = () => {
+    const [name, setName] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const navigate = useNavigate();
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            const res = await axios.post('/api/auth/register', { name, email, password });
+            localStorage.setItem('token', res.data.token);
+            navigate('/');
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    return (
+        <div className="register">
+            <h2>Register</h2>
+            <form onSubmit={handleSubmit}>
+                <div className="form-group">
+                    <label>Name</label>
+                    <input type="text" value={name} onChange={(e) => setName(e.target.value)} required />
+                </div>
+                <div className="form-group">
+                    <label>Email</label>
+                    <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                </div>
+                <div className="form-group">
+                    <label>Password</label>
+                    <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+                </div>
+                <button type="submit">Register</button>
+            </form>
+        </div>
+    );
+};
+
+export default Register;
