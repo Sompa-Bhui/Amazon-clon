@@ -1,0 +1,42 @@
+amazon-clone/
+│
+├── backend/
+│   ├── config/
+│   │   └── db.js
+│   ├── controllers/
+│   │   ├── authController.js
+│   │   ├── productController.js
+│   │   └── cartController.js
+│   ├── models/
+│   │   ├── User.js
+│   │   ├── Product.js
+│   │   └── Cart.js
+│   ├── routes/
+│   │   ├── authRoutes.js
+│   │   ├── productRoutes.js
+│   │   └── cartRoutes.js
+│   ├── middlewares/
+│   │   └── authMiddleware.js
+│   ├── .env
+│   ├── server.js
+│   └── package.json
+│
+├── frontend/
+│   ├── public/
+│   │   └── index.html
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── Navbar.js
+│   │   │   ├── Product.js
+│   │   │   ├── ProductList.js
+│   │   │   ├── Cart.js
+│   │   │   ├── Login.js
+│   │   │   ├── Register.js
+│   │   │   └── Checkout.js
+│   │   ├── App.js
+│   │   ├── index.js
+│   │   └── package.json
+│   └── package.json
+│
+├── README.md
+└── package.json
